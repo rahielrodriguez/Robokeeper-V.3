@@ -7,7 +7,7 @@ Imports Microsoft.VisualBasic.Logging
 Public Class RobokeeperV3
     Dim previousPosition_Global As Integer
     Dim objectivePosition_Global As Integer
-    Dim steps_Multiplying_Factor As Integer = 10
+    Dim steps_Multiplying_Factor As Integer = 2
 
     Dim newCameraX As Integer
     Dim oldCameraX As Integer
@@ -68,7 +68,7 @@ Public Class RobokeeperV3
                 PixyComboBox.Items.Add($"{s}")
             End If
         Next
-        'pixycombobox.selectedindex = 1
+        PixyComboBox.SelectedIndex = 1
     End Sub
 
     Private Sub ComButton_Click(sender As Object, e As EventArgs) Handles ComButton.Click
@@ -82,10 +82,10 @@ Public Class RobokeeperV3
     Private Sub RobokeeperV3_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         'motorStoppedFlag = True
         GetPorts1() 'Loads and open the ports for the PIC and the Pixy Camera
-        GetPorts2()
+        'GetPorts2()
         PICSerialPort.DiscardInBuffer() 'Discards any non desired data On the port When start up happens
         'PixySerialPort.DiscardInBuffer()
-        previousPosition_Global = 1 * steps_Multiplying_Factor 'Starts at position 1 by default.
+        previousPosition_Global = 9 * steps_Multiplying_Factor 'Starts at position 1 by default.
         ResetTimer.Start() 'starts the semi-automatic control timer used by the physical button on the board.
     End Sub
     Sub Button1_Task()
@@ -94,36 +94,19 @@ Public Class RobokeeperV3
         objectivePosition_Global = CInt(position_Data(0)) * steps_Multiplying_Factor 'Determines the objective position based on the position that is desired to go.
         Try
             If objectivePosition_Global <> previousPosition_Global Then
-                WriteHandshake()    'Sends Handshake Byte
-                Sleep(5)
                 Dim received_Data(PICSerialPort.BytesToRead) As Byte
-                PICSerialPort.Read(received_Data, 0, PICSerialPort.BytesToRead) 'Reads PIC Transmitted data
-                Console.Write($"PIC Received Data: ")
-                Console.Write($"{Hex(received_Data(0))}")
+                Console.Write($"Position = ")
+                Console.Write($"{Hex(position_Data(0))}")
                 Console.WriteLine()
-                If received_Data(0) = &H24 And received_Data.Length >= 1 Then 'If PIC Handshake is detected and has the correct number of bytes
-                    PICSerialPort.Write(position_Data, 0, 1) 'Transmits the desired position to go.
-                    Console.Write($"Position = ")
-                    Console.Write($"{Hex(position_Data(0))}")
-                    Console.WriteLine()
-                    Sleep(5)
-
-                    If previousPosition_Global = objectivePosition_Global Then 'DO NOT MOVE THE MOTOR IF POSITION DID NOT CHANGE
-                        Console.Write($"Same position as before(Position {objectivePosition_Global}), motor did not move")
-                        Console.WriteLine()
-                    Else
-                        StepsComparison(previousPosition_Global, objectivePosition_Global) 'Compare Objective Position and Previous Position
-                        previousPosition_Global = objectivePosition_Global 'Objective position reached, becomes previous position
-                    End If
-
-                Else
-
-                End If
-                oldCameraX = newCameraX 'Saves new coordinates for later comparison 
-                CameraControlCheckBox.Checked = False 'Disables Automatic Motion once position is reached
-                ResetTimer.Start()
+                StepsComparison(previousPosition_Global, objectivePosition_Global) 'Compare Objective Position and Previous Position
+                Sleep(10)
+                PICSerialPort.Read(received_Data, 0, PICSerialPort.BytesToRead)
+                Console.Write($"PIC Stepping Data: {Hex(received_Data(0))}")
+                Console.WriteLine()
+                previousPosition_Global = objectivePosition_Global 'Objective position reached, becomes previous position
             Else
-
+                Console.Write($"Same position as before (Position {position_Data(0)}), motor did not move")
+                Console.WriteLine()
             End If
 
         Catch ex As Exception
@@ -136,36 +119,19 @@ Public Class RobokeeperV3
         objectivePosition_Global = CInt(position_Data(0)) * steps_Multiplying_Factor 'Determines the objective position based on the position that is desired to go.
         Try
             If objectivePosition_Global <> previousPosition_Global Then
-                WriteHandshake()    'Sends Handshake Byte
-                Sleep(5)
                 Dim received_Data(PICSerialPort.BytesToRead) As Byte
-                PICSerialPort.Read(received_Data, 0, PICSerialPort.BytesToRead) 'Reads PIC Transmitted data
-                Console.Write($"PIC Received Data: ")
-                Console.Write($"{Hex(received_Data(0))}")
+                Console.Write($"Position = ")
+                Console.Write($"{Hex(position_Data(0))}")
                 Console.WriteLine()
-                If received_Data(0) = &H24 And received_Data.Length >= 1 Then 'If PIC Handshake is detected and has the correct number of bytes
-                    PICSerialPort.Write(position_Data, 0, 1) 'Transmits the desired position to go.
-                    Console.Write($"Position = ")
-                    Console.Write($"{Hex(position_Data(0))}")
-                    Console.WriteLine()
-                    Sleep(5)
-
-                    If previousPosition_Global = objectivePosition_Global Then 'DO NOT MOVE THE MOTOR IF POSITION DID NOT CHANGE
-                        Console.Write($"Same position as before(Position {objectivePosition_Global}), motor did not move")
-                        Console.WriteLine()
-                    Else
-                        StepsComparison(previousPosition_Global, objectivePosition_Global) 'Compare Objective Position and Previous Position
-                        previousPosition_Global = objectivePosition_Global 'Objective position reached, becomes previous position
-                    End If
-
-                Else
-
-                End If
-                oldCameraX = newCameraX 'Saves new coordinates for later comparison 
-                CameraControlCheckBox.Checked = False 'Disables Automatic Motion once position is reached
-                ResetTimer.Start()
+                StepsComparison(previousPosition_Global, objectivePosition_Global) 'Compare Objective Position and Previous Position
+                Sleep(10)
+                PICSerialPort.Read(received_Data, 0, PICSerialPort.BytesToRead)
+                Console.Write($"PIC Stepping Data: {Hex(received_Data(0))}")
+                Console.WriteLine()
+                previousPosition_Global = objectivePosition_Global 'Objective position reached, becomes previous position
             Else
-
+                Console.Write($"Same position as before (Position {position_Data(0)}), motor did not move")
+                Console.WriteLine()
             End If
 
         Catch ex As Exception
@@ -178,36 +144,19 @@ Public Class RobokeeperV3
         objectivePosition_Global = CInt(position_Data(0)) * steps_Multiplying_Factor 'Determines the objective position based on the position that is desired to go.
         Try
             If objectivePosition_Global <> previousPosition_Global Then
-                WriteHandshake()    'Sends Handshake Byte
-                Sleep(5)
                 Dim received_Data(PICSerialPort.BytesToRead) As Byte
-                PICSerialPort.Read(received_Data, 0, PICSerialPort.BytesToRead) 'Reads PIC Transmitted data
-                Console.Write($"PIC Received Data: ")
-                Console.Write($"{Hex(received_Data(0))}")
+                Console.Write($"Position = ")
+                Console.Write($"{Hex(position_Data(0))}")
                 Console.WriteLine()
-                If received_Data(0) = &H24 And received_Data.Length >= 1 Then 'If PIC Handshake is detected and has the correct number of bytes
-                    PICSerialPort.Write(position_Data, 0, 1) 'Transmits the desired position to go.
-                    Console.Write($"Position = ")
-                    Console.Write($"{Hex(position_Data(0))}")
-                    Console.WriteLine()
-                    Sleep(5)
-
-                    If previousPosition_Global = objectivePosition_Global Then 'DO NOT MOVE THE MOTOR IF POSITION DID NOT CHANGE
-                        Console.Write($"Same position as before(Position {objectivePosition_Global}), motor did not move")
-                        Console.WriteLine()
-                    Else
-                        StepsComparison(previousPosition_Global, objectivePosition_Global) 'Compare Objective Position and Previous Position
-                        previousPosition_Global = objectivePosition_Global 'Objective position reached, becomes previous position
-                    End If
-
-                Else
-
-                End If
-                oldCameraX = newCameraX 'Saves new coordinates for later comparison 
-                CameraControlCheckBox.Checked = False 'Disables Automatic Motion once position is reached
-                ResetTimer.Start()
+                StepsComparison(previousPosition_Global, objectivePosition_Global) 'Compare Objective Position and Previous Position
+                Sleep(10)
+                PICSerialPort.Read(received_Data, 0, PICSerialPort.BytesToRead)
+                Console.Write($"PIC Stepping Data: {Hex(received_Data(0))}")
+                Console.WriteLine()
+                previousPosition_Global = objectivePosition_Global 'Objective position reached, becomes previous position
             Else
-
+                Console.Write($"Same position as before (Position {position_Data(0)}), motor did not move")
+                Console.WriteLine()
             End If
 
         Catch ex As Exception
@@ -220,36 +169,19 @@ Public Class RobokeeperV3
         objectivePosition_Global = CInt(position_Data(0)) * steps_Multiplying_Factor 'Determines the objective position based on the position that is desired to go.
         Try
             If objectivePosition_Global <> previousPosition_Global Then
-                WriteHandshake()    'Sends Handshake Byte
-                Sleep(5)
                 Dim received_Data(PICSerialPort.BytesToRead) As Byte
-                PICSerialPort.Read(received_Data, 0, PICSerialPort.BytesToRead) 'Reads PIC Transmitted data
-                Console.Write($"PIC Received Data: ")
-                Console.Write($"{Hex(received_Data(0))}")
+                Console.Write($"Position = ")
+                Console.Write($"{Hex(position_Data(0))}")
                 Console.WriteLine()
-                If received_Data(0) = &H24 And received_Data.Length >= 1 Then 'If PIC Handshake is detected and has the correct number of bytes
-                    PICSerialPort.Write(position_Data, 0, 1) 'Transmits the desired position to go.
-                    Console.Write($"Position = ")
-                    Console.Write($"{Hex(position_Data(0))}")
-                    Console.WriteLine()
-                    Sleep(5)
-
-                    If previousPosition_Global = objectivePosition_Global Then 'DO NOT MOVE THE MOTOR IF POSITION DID NOT CHANGE
-                        Console.Write($"Same position as before(Position {objectivePosition_Global}), motor did not move")
-                        Console.WriteLine()
-                    Else
-                        StepsComparison(previousPosition_Global, objectivePosition_Global) 'Compare Objective Position and Previous Position
-                        previousPosition_Global = objectivePosition_Global 'Objective position reached, becomes previous position
-                    End If
-
-                Else
-
-                End If
-                oldCameraX = newCameraX 'Saves new coordinates for later comparison 
-                CameraControlCheckBox.Checked = False 'Disables Automatic Motion once position is reached
-                ResetTimer.Start()
+                StepsComparison(previousPosition_Global, objectivePosition_Global) 'Compare Objective Position and Previous Position
+                Sleep(10)
+                PICSerialPort.Read(received_Data, 0, PICSerialPort.BytesToRead)
+                Console.Write($"PIC Stepping Data: {Hex(received_Data(0))}")
+                Console.WriteLine()
+                previousPosition_Global = objectivePosition_Global 'Objective position reached, becomes previous position
             Else
-
+                Console.Write($"Same position as before (Position {position_Data(0)}), motor did not move")
+                Console.WriteLine()
             End If
 
         Catch ex As Exception
@@ -262,36 +194,19 @@ Public Class RobokeeperV3
         objectivePosition_Global = CInt(position_Data(0)) * steps_Multiplying_Factor 'Determines the objective position based on the position that is desired to go.
         Try
             If objectivePosition_Global <> previousPosition_Global Then
-                WriteHandshake()    'Sends Handshake Byte
-                Sleep(5)
                 Dim received_Data(PICSerialPort.BytesToRead) As Byte
-                PICSerialPort.Read(received_Data, 0, PICSerialPort.BytesToRead) 'Reads PIC Transmitted data
-                Console.Write($"PIC Received Data: ")
-                Console.Write($"{Hex(received_Data(0))}")
+                Console.Write($"Position = ")
+                Console.Write($"{Hex(position_Data(0))}")
                 Console.WriteLine()
-                If received_Data(0) = &H24 And received_Data.Length >= 1 Then 'If PIC Handshake is detected and has the correct number of bytes
-                    PICSerialPort.Write(position_Data, 0, 1) 'Transmits the desired position to go.
-                    Console.Write($"Position = ")
-                    Console.Write($"{Hex(position_Data(0))}")
-                    Console.WriteLine()
-                    Sleep(5)
-
-                    If previousPosition_Global = objectivePosition_Global Then 'DO NOT MOVE THE MOTOR IF POSITION DID NOT CHANGE
-                        Console.Write($"Same position as before(Position {objectivePosition_Global}), motor did not move")
-                        Console.WriteLine()
-                    Else
-                        StepsComparison(previousPosition_Global, objectivePosition_Global) 'Compare Objective Position and Previous Position
-                        previousPosition_Global = objectivePosition_Global 'Objective position reached, becomes previous position
-                    End If
-
-                Else
-
-                End If
-                oldCameraX = newCameraX 'Saves new coordinates for later comparison 
-                CameraControlCheckBox.Checked = False 'Disables Automatic Motion once position is reached
-                ResetTimer.Start()
+                StepsComparison(previousPosition_Global, objectivePosition_Global) 'Compare Objective Position and Previous Position
+                Sleep(10)
+                PICSerialPort.Read(received_Data, 0, PICSerialPort.BytesToRead)
+                Console.Write($"PIC Stepping Data: {Hex(received_Data(0))}")
+                Console.WriteLine()
+                previousPosition_Global = objectivePosition_Global 'Objective position reached, becomes previous position
             Else
-
+                Console.Write($"Same position as before (Position {position_Data(0)}), motor did not move")
+                Console.WriteLine()
             End If
 
         Catch ex As Exception
@@ -304,36 +219,19 @@ Public Class RobokeeperV3
         objectivePosition_Global = CInt(position_Data(0)) * steps_Multiplying_Factor 'Determines the objective position based on the position that is desired to go.
         Try
             If objectivePosition_Global <> previousPosition_Global Then
-                WriteHandshake()    'Sends Handshake Byte
-                Sleep(5)
                 Dim received_Data(PICSerialPort.BytesToRead) As Byte
-                PICSerialPort.Read(received_Data, 0, PICSerialPort.BytesToRead) 'Reads PIC Transmitted data
-                Console.Write($"PIC Received Data: ")
-                Console.Write($"{Hex(received_Data(0))}")
+                Console.Write($"Position = ")
+                Console.Write($"{Hex(position_Data(0))}")
                 Console.WriteLine()
-                If received_Data(0) = &H24 And received_Data.Length >= 1 Then 'If PIC Handshake is detected and has the correct number of bytes
-                    PICSerialPort.Write(position_Data, 0, 1) 'Transmits the desired position to go.
-                    Console.Write($"Position = ")
-                    Console.Write($"{Hex(position_Data(0))}")
-                    Console.WriteLine()
-                    Sleep(5)
-
-                    If previousPosition_Global = objectivePosition_Global Then 'DO NOT MOVE THE MOTOR IF POSITION DID NOT CHANGE
-                        Console.Write($"Same position as before(Position {objectivePosition_Global}), motor did not move")
-                        Console.WriteLine()
-                    Else
-                        StepsComparison(previousPosition_Global, objectivePosition_Global) 'Compare Objective Position and Previous Position
-                        previousPosition_Global = objectivePosition_Global 'Objective position reached, becomes previous position
-                    End If
-
-                Else
-
-                End If
-                oldCameraX = newCameraX 'Saves new coordinates for later comparison 
-                CameraControlCheckBox.Checked = False 'Disables Automatic Motion once position is reached
-                ResetTimer.Start()
+                StepsComparison(previousPosition_Global, objectivePosition_Global) 'Compare Objective Position and Previous Position
+                Sleep(10)
+                PICSerialPort.Read(received_Data, 0, PICSerialPort.BytesToRead)
+                Console.Write($"PIC Stepping Data: {Hex(received_Data(0))}")
+                Console.WriteLine()
+                previousPosition_Global = objectivePosition_Global 'Objective position reached, becomes previous position
             Else
-
+                Console.Write($"Same position as before (Position {position_Data(0)}), motor did not move")
+                Console.WriteLine()
             End If
 
         Catch ex As Exception
@@ -346,36 +244,19 @@ Public Class RobokeeperV3
         objectivePosition_Global = CInt(position_Data(0)) * steps_Multiplying_Factor 'Determines the objective position based on the position that is desired to go.
         Try
             If objectivePosition_Global <> previousPosition_Global Then
-                WriteHandshake()    'Sends Handshake Byte
-                Sleep(5)
                 Dim received_Data(PICSerialPort.BytesToRead) As Byte
-                PICSerialPort.Read(received_Data, 0, PICSerialPort.BytesToRead) 'Reads PIC Transmitted data
-                Console.Write($"PIC Received Data: ")
-                Console.Write($"{Hex(received_Data(0))}")
+                Console.Write($"Position = ")
+                Console.Write($"{Hex(position_Data(0))}")
                 Console.WriteLine()
-                If received_Data(0) = &H24 And received_Data.Length >= 1 Then 'If PIC Handshake is detected and has the correct number of bytes
-                    PICSerialPort.Write(position_Data, 0, 1) 'Transmits the desired position to go.
-                    Console.Write($"Position = ")
-                    Console.Write($"{Hex(position_Data(0))}")
-                    Console.WriteLine()
-                    Sleep(5)
-
-                    If previousPosition_Global = objectivePosition_Global Then 'DO NOT MOVE THE MOTOR IF POSITION DID NOT CHANGE
-                        Console.Write($"Same position as before(Position {objectivePosition_Global}), motor did not move")
-                        Console.WriteLine()
-                    Else
-                        StepsComparison(previousPosition_Global, objectivePosition_Global) 'Compare Objective Position and Previous Position
-                        previousPosition_Global = objectivePosition_Global 'Objective position reached, becomes previous position
-                    End If
-
-                Else
-
-                End If
-                oldCameraX = newCameraX 'Saves new coordinates for later comparison 
-                CameraControlCheckBox.Checked = False 'Disables Automatic Motion once position is reached
-                ResetTimer.Start()
+                StepsComparison(previousPosition_Global, objectivePosition_Global) 'Compare Objective Position and Previous Position
+                Sleep(10)
+                PICSerialPort.Read(received_Data, 0, PICSerialPort.BytesToRead)
+                Console.Write($"PIC Stepping Data: {Hex(received_Data(0))}")
+                Console.WriteLine()
+                previousPosition_Global = objectivePosition_Global 'Objective position reached, becomes previous position
             Else
-
+                Console.Write($"Same position as before (Position {position_Data(0)}), motor did not move")
+                Console.WriteLine()
             End If
 
         Catch ex As Exception
@@ -388,36 +269,19 @@ Public Class RobokeeperV3
         objectivePosition_Global = CInt(position_Data(0)) * steps_Multiplying_Factor 'Determines the objective position based on the position that is desired to go.
         Try
             If objectivePosition_Global <> previousPosition_Global Then
-                WriteHandshake()    'Sends Handshake Byte
-                Sleep(5)
                 Dim received_Data(PICSerialPort.BytesToRead) As Byte
-                PICSerialPort.Read(received_Data, 0, PICSerialPort.BytesToRead) 'Reads PIC Transmitted data
-                Console.Write($"PIC Received Data: ")
-                Console.Write($"{Hex(received_Data(0))}")
+                Console.Write($"Position = ")
+                Console.Write($"{Hex(position_Data(0))}")
                 Console.WriteLine()
-                If received_Data(0) = &H24 And received_Data.Length >= 1 Then 'If PIC Handshake is detected and has the correct number of bytes
-                    PICSerialPort.Write(position_Data, 0, 1) 'Transmits the desired position to go.
-                    Console.Write($"Position = ")
-                    Console.Write($"{Hex(position_Data(0))}")
-                    Console.WriteLine()
-                    Sleep(5)
-
-                    If previousPosition_Global = objectivePosition_Global Then 'DO NOT MOVE THE MOTOR IF POSITION DID NOT CHANGE
-                        Console.Write($"Same position as before(Position {objectivePosition_Global}), motor did not move")
-                        Console.WriteLine()
-                    Else
-                        StepsComparison(previousPosition_Global, objectivePosition_Global) 'Compare Objective Position and Previous Position
-                        previousPosition_Global = objectivePosition_Global 'Objective position reached, becomes previous position
-                    End If
-
-                Else
-
-                End If
-                oldCameraX = newCameraX 'Saves new coordinates for later comparison 
-                CameraControlCheckBox.Checked = False 'Disables Automatic Motion once position is reached
-                ResetTimer.Start()
+                StepsComparison(previousPosition_Global, objectivePosition_Global) 'Compare Objective Position and Previous Position
+                Sleep(10)
+                PICSerialPort.Read(received_Data, 0, PICSerialPort.BytesToRead)
+                Console.Write($"PIC Stepping Data: {Hex(received_Data(0))}")
+                Console.WriteLine()
+                previousPosition_Global = objectivePosition_Global 'Objective position reached, becomes previous position
             Else
-
+                Console.Write($"Same position as before (Position {position_Data(0)}), motor did not move")
+                Console.WriteLine()
             End If
 
         Catch ex As Exception
@@ -430,36 +294,19 @@ Public Class RobokeeperV3
         objectivePosition_Global = CInt(position_Data(0)) * steps_Multiplying_Factor 'Determines the objective position based on the position that is desired to go.
         Try
             If objectivePosition_Global <> previousPosition_Global Then
-                WriteHandshake()    'Sends Handshake Byte
-                Sleep(5)
                 Dim received_Data(PICSerialPort.BytesToRead) As Byte
-                PICSerialPort.Read(received_Data, 0, PICSerialPort.BytesToRead) 'Reads PIC Transmitted data
-                Console.Write($"PIC Received Data: ")
-                Console.Write($"{Hex(received_Data(0))}")
+                Console.Write($"Position = ")
+                Console.Write($"{Hex(position_Data(0))}")
                 Console.WriteLine()
-                If received_Data(0) = &H24 And received_Data.Length >= 1 Then 'If PIC Handshake is detected and has the correct number of bytes
-                    PICSerialPort.Write(position_Data, 0, 1) 'Transmits the desired position to go.
-                    Console.Write($"Position = ")
-                    Console.Write($"{Hex(position_Data(0))}")
-                    Console.WriteLine()
-                    Sleep(5)
-
-                    If previousPosition_Global = objectivePosition_Global Then 'DO NOT MOVE THE MOTOR IF POSITION DID NOT CHANGE
-                        Console.Write($"Same position as before(Position {objectivePosition_Global}), motor did not move")
-                        Console.WriteLine()
-                    Else
-                        StepsComparison(previousPosition_Global, objectivePosition_Global) 'Compare Objective Position and Previous Position
-                        previousPosition_Global = objectivePosition_Global 'Objective position reached, becomes previous position
-                    End If
-
-                Else
-
-                End If
-                oldCameraX = newCameraX 'Saves new coordinates for later comparison 
-                CameraControlCheckBox.Checked = False 'Disables Automatic Motion once position is reached
-                ResetTimer.Start()
+                StepsComparison(previousPosition_Global, objectivePosition_Global) 'Compare Objective Position and Previous Position
+                Sleep(10)
+                PICSerialPort.Read(received_Data, 0, PICSerialPort.BytesToRead)
+                Console.Write($"PIC Stepping Data: {Hex(received_Data(0))}")
+                Console.WriteLine()
+                previousPosition_Global = objectivePosition_Global 'Objective position reached, becomes previous position
             Else
-
+                Console.Write($"Same position as before (Position {position_Data(0)}), motor did not move")
+                Console.WriteLine()
             End If
 
         Catch ex As Exception
